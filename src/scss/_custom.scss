@@ -1,0 +1,39 @@
+// Here you can add other styles
+*{
+  transition: 0.5s;
+}
+
+.image:hover {
+ scale: 1.05;
+  .childs {
+    display: block;
+    transition: 3s;
+  }
+}
+
+.childs {
+  transition: 3s;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: white;
+}
+
+.sidebar {
+  -ms-overflow-style: none; /* for Internet Explorer, Edge */
+  scrollbar-width: none; /* for Firefox */
+  overflow-y: scroll;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none; /* for Chrome, Safari, and Opera */
+}
+
+.hover:hover {
+  .inHover {
+    scale: 1.5;
+  }
+}
+
+/* other styling */
