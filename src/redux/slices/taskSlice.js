@@ -2,12 +2,17 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import $api from '../http/index'
 
 export const fetchTasks = createAsyncThunk('task/fetchTasks', async () => {
-  const { data } = await $api.get('/task')
+  const { data } = await $api.get('/task/get')
+  return data
+})
+
+export const fetchGetMyTasks = createAsyncThunk('task/fetchGetMyTasks', async () => {
+  const { data } = await $api.get('/task/getmy')
   return data
 })
 
 export const fetchTaskById = createAsyncThunk('task/fetchTaskById', async (id) => {
-  const { data } = await $api.get(`/task/${id}`)
+  const { data } = await $api.get(`/task/get/${id}`)
   return data
 })
 
@@ -23,6 +28,11 @@ export const fetchUpdateTask = createAsyncThunk('task/fetchUpdateTask', async (p
 
 export const fetchDeleteTask = createAsyncThunk('task/fetchDeleteTask', async (id) => {
   const { data } = await $api.delete(`/task/${id}`)
+  return data
+})
+
+export const fetchDeleteImage = createAsyncThunk('task/fetchDeleteTask', async (link) => {
+  const { data } = await $api.delete(`/upload/remove${link}`)
   return data
 })
 
@@ -61,6 +71,22 @@ export const taskSlice = createSlice({
       state.tasks = action.payload
     })
     builder.addCase(fetchTasks.rejected, (state) => {
+      state.isLoading = true
+      state.isError = true
+      state.tasks = []
+    })
+
+    builder.addCase(fetchGetMyTasks.pending, (state) => {
+      state.isLoading = true
+      state.isError = false
+      state.tasks = []
+    })
+    builder.addCase(fetchGetMyTasks.fulfilled, (state, action) => {
+      state.isLoading = false
+      state.isError = false
+      state.tasks = action.payload
+    })
+    builder.addCase(fetchGetMyTasks.rejected, (state) => {
       state.isLoading = true
       state.isError = true
       state.tasks = []

@@ -20,14 +20,22 @@ import CIcon from '@coreui/icons-react'
 import { cilBrush, cilDelete, cilNoteAdd, cilTask } from '@coreui/icons'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchDeleteTask, fetchTasks, deleteTaskById, setUsers } from '../../redux/slices/taskSlice'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { BACK_URL } from '../../redux/http'
+import { Avatar } from '@mui/material'
+import { deepPurple } from '@mui/material/colors'
 
 const Tasks = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { tasks, isLoading } = useSelector((state) => state.taskReducer)
+  const { isLogged } = useSelector((state) => state.userReducer)
   useEffect(() => {
-    dispatch(fetchTasks())
+    if (isLogged) {
+      dispatch(fetchTasks())
+    } else {
+      navigate('/login')
+    }
   }, [])
 
   const onDeleteTask = (id) => {
@@ -74,14 +82,14 @@ const Tasks = () => {
                       {tasks.map((item, index) => (
                         <CTableRow v-for="item in tableItems" key={index}>
                           <CTableDataCell className="text-center">
-                            <CAvatar
-                              size="md"
-                              src={`${
-                                item.imageId
-                                  ? `${BACK_URL + item.imageId[item.imageId.length - 1].link}`
-                                  : ''
-                              } `}
-                            />
+                            <div>
+                              <Avatar
+                                key={index}
+                                sx={{ bgcolor: deepPurple[500], margin: '0 auto' }}
+                              >
+                                {item.title ? item.title[0].toUpperCase() : 'A'}
+                              </Avatar>
+                            </div>
                           </CTableDataCell>
                           <CTableDataCell className="text-start">
                             <>{item.title}</>
@@ -96,30 +104,40 @@ const Tasks = () => {
                             <>{new Date(item.date_end).toDateString()}</>
                           </CTableDataCell>
                           <CTableDataCell className="text-center">
-                            <>
-                              {item.userIds
-                                ? item.userIds.map((items, index) => (
-                                    <CAvatar
-                                      key={index}
-                                      size="md"
-                                      src={`${
-                                        item.imageId
-                                          ? `${
-                                              BACK_URL + item.imageId[item.imageId.length - 1].link
-                                            }`
-                                          : ''
-                                      } `}
-                                    />
-                                  ))
-                                : ''}
-                            </>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <>
+                                {item.userIds
+                                  ? item.userIds.map((items, index) =>
+                                      item.user[index].avatar ? (
+                                        <Avatar
+                                          key={index}
+                                          alt="Remy Sharp"
+                                          src={`${BACK_URL}${item.user[index].avatar}`}
+                                        />
+                                      ) : (
+                                        <Avatar
+                                          key={index}
+                                          sx={{ bgcolor: deepPurple[500], margin: '0 auto' }}
+                                        >
+                                          A
+                                        </Avatar>
+                                      ),
+                                    )
+                                  : ''}
+                              </>
+                            </div>
                           </CTableDataCell>
                           <CTableDataCell className="text-center hover">
                             <Link to={`/task/${item.id}`}>
                               <CIcon className="inHover" icon={cilBrush} />
                             </Link>
                           </CTableDataCell>
-
                           <CTableDataCell
                             className="text-center hover"
                             onClick={() => onDeleteTask(item.id)}

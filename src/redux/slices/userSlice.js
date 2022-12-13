@@ -11,6 +11,11 @@ export const fetchRegister = createAsyncThunk('users/fetchRegister', async (para
   return data
 })
 
+export const fetchUpdateUser = createAsyncThunk('users/fetchUpdateUser', async (params) => {
+  const { data } = await $api.put(`/user/${params.id}`, params)
+  return data
+})
+
 export const fetchLogout = createAsyncThunk('users/fetchLogout', async () => {
   const { data } = await $api.get('/user/logout')
   return data
@@ -26,11 +31,17 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (params) =>
   return data
 })
 
+export const fetchUser = createAsyncThunk('users/fetchUser', async (id) => {
+  const { data } = await $api.get(`/user/getby/${id}`)
+  return data
+})
+
 const initialState = {
   isLogged: false,
   isError: false,
   userinfo: {},
   users: [],
+  user: {},
 }
 
 export const userSlice = createSlice({
@@ -83,6 +94,11 @@ export const userSlice = createSlice({
       state.userInfo = action.payload
       localStorage.setItem('accessToken', action.payload.accessToken)
     })
+
+    builder.addCase(fetchUpdateUser.fulfilled, (state, action) => {
+      state.userInfo = action.payload
+    })
+
     builder.addCase(fetchRegister.rejected, (state) => {
       state.isLogged = false
       state.isError = true
@@ -92,13 +108,11 @@ export const userSlice = createSlice({
 
     builder.addCase(fetchRefresh.fulfilled, (state, action) => {
       state.isLogged = true
-      state.isError = false
       state.userInfo = action.payload
       localStorage.setItem('accessToken', action.payload.accessToken)
     })
     builder.addCase(fetchRefresh.rejected, (state) => {
       state.isLogged = false
-      state.isError = true
       state.userInfo = {}
       localStorage.removeItem('accessToken')
     })
@@ -116,6 +130,16 @@ export const userSlice = createSlice({
 
     builder.addCase(fetchUsers.fulfilled, (state, action) => {
       state.users = action.payload
+    })
+
+    builder.addCase(fetchUser.pending, (state) => {
+      state.user = {}
+    })
+    builder.addCase(fetchUser.fulfilled, (state, action) => {
+      state.user = action.payload
+    })
+    builder.addCase(fetchUser.rejected, (state) => {
+      state.user = {}
     })
   },
 })

@@ -3,6 +3,7 @@ import userSlice from './slices/userSlice'
 import sideSlice from './slices/sideSlice'
 import questionnaireSlice from './slices/questionnaireSlice'
 import taskSlice from './slices/taskSlice'
+import commentSlice from './slices/commentSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,5 +11,6 @@ export const store = configureStore({
     sideReducer: sideSlice,
     questionnaireReducer: questionnaireSlice,
     taskReducer: taskSlice,
+    commentReducer: commentSlice,
   },
 })

@@ -11,6 +11,7 @@ import {
 } from '@coreui/react'
 import {
   cilCreditCard,
+  cilDataTransferUp,
   cilFile,
   cilLockLocked,
   cilSettings,
@@ -52,7 +53,15 @@ const AppHeaderDropdown = () => {
           {' '}
           <CDropdownToggle placement="bottom-end" className="py-0" caret={false}>
             {userInfo.avatar ? (
-              <CAvatar src={`${BACK_URL}${userInfo.avatar}`} size="md" />
+              <img
+                src={`${BACK_URL}${userInfo.avatar}`}
+                style={{
+                  objectFit: 'cover',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50px',
+                }}
+              />
             ) : (
               <div className="avatar bg-primary text-white">CUI</div>
             )}
@@ -62,27 +71,13 @@ const AppHeaderDropdown = () => {
             <CDropdownHeader className="bg-light fw-semibold py-2">
               Email: {userInfo.email}
             </CDropdownHeader>
-            <CDropdownItem href="#">
+            <CDropdownItem href={`#/profile/${userInfo.id}`}>
               <CIcon icon={cilUser} className="me-2" />
               Profile
             </CDropdownItem>
-            <CDropdownItem href="#">
-              <CIcon icon={cilSettings} className="me-2" />
-              Settings
-            </CDropdownItem>
-            <CDropdownItem href="#">
-              <CIcon icon={cilCreditCard} className="me-2" />
-              Payments
-              <CBadge color="secondary" className="ms-2">
-                42
-              </CBadge>
-            </CDropdownItem>
-            <CDropdownItem href="#">
-              <CIcon icon={cilFile} className="me-2" />
-              Projects
-              <CBadge color="primary" className="ms-2">
-                42
-              </CBadge>
+            <CDropdownItem href={`#/questionnaire/${userInfo.id}`}>
+              <CIcon icon={cilDataTransferUp} className="me-2" />
+              Анкета
             </CDropdownItem>
             <CDropdownDivider />
             <CDropdownItem href="#" onClick={() => dispatch(fetchLogout())}>

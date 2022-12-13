@@ -1,4 +1,5 @@
 import React from 'react'
+import MyTasks from './views/tasks/MyTasks'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Tasks = React.lazy(() => import('./views/tasks/Tasks'))
@@ -54,7 +55,8 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/tasks', name: 'Dashboard', element: Tasks },
+  { path: '/tasks', name: 'Задания', element: Tasks },
+  { path: '/mytasks', name: 'Мои задания', element: MyTasks },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },

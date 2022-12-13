@@ -9,10 +9,12 @@ import {
   CForm,
   CFormInput,
   CFormSelect,
+  CFormTextarea,
   CImage,
   CInputGroup,
   CInputGroupText,
   CRow,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilDelete, cilLockLocked, cilUser } from '@coreui/icons'
@@ -22,32 +24,53 @@ import 'react-phone-input-2/lib/style.css'
 import { useNavigate, useParams } from 'react-router-dom'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
-import { fetchCreateTask, fetchTaskById, fetchUpdateTask } from '../../../redux/slices/taskSlice'
+import {
+  fetchCreateTask,
+  fetchDeleteImage,
+  fetchTaskById,
+  fetchUpdateTask,
+} from '../../../redux/slices/taskSlice'
 import $api from '../../../redux/http'
 import { BACK_URL } from '../../../redux/http'
+import { Button, Stack, TextField } from '@mui/material'
+import { v4 } from 'uuid'
 
 const Task = () => {
   const { task, isError } = useSelector((state) => state.taskReducer)
   const [title, setTitle] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
   const [description, setDescription] = useState('')
   const [fileId, setFileId] = useState('')
-  const [imageId, setImageId] = useState([{ link: '' }])
-  const [dateEnd, setDateEnd] = useState(new Date())
+  const [imageId, setImageId] = useState('')
+  const [imageIds, setImageIds] = useState('')
+  const [dateEnd, setDateEnd] = useState(
+    useState(
+      `${new Date().getFullYear()}-${new Date().getMonth()}-${
+        new Date().getDate > 9 ? new Date().getDate() : `0${new Date().getDate()}`
+      }`,
+    ),
+  )
   const [userIds, setUserIds] = useState('')
   const [user, setUser] = useState('')
   const { users } = useSelector((state) => state.userReducer)
   const dispatch = useDispatch()
-
   const navigate = useNavigate()
 
   const onCreateTask = (userSend) => {
+    let imageIdss = imageId
+      ? imageId
+          .split('~')
+          .map((i) => JSON.parse(i))
+          .map((i) => i.link)
+          .filter((item) => imageId.lastIndexOf(item) === imageId.indexOf(item))
+      : ''
     dispatch(
       fetchCreateTask({
         title,
         description,
         fileId,
-        imageId,
-        dateEnd,
+        imageId: imageIdss,
+        dateEnd: new Date(dateEnd),
         userIds: userSend.map((items) => {
           return items.id
         }),
@@ -57,14 +80,21 @@ const Task = () => {
   }
 
   const onUpdateTask = (userSend) => {
+    let imageIdss = imageId
+      ? imageId
+          .split('~')
+          .map((i) => JSON.parse(i))
+          .map((i) => i.link)
+          .filter((item) => imageId.lastIndexOf(item) === imageId.indexOf(item))
+      : ''
     dispatch(
       fetchUpdateTask({
         id,
         title,
         description,
         fileId: fileId,
-        imageId: imageId,
-        dateEnd,
+        imageId: imageIdss,
+        dateEnd: new Date(dateEnd),
         userIds: userSend.map((items) => {
           return items.id
         }),
@@ -84,7 +114,9 @@ const Task = () => {
           'Content-Type': 'multipart/form-data',
         },
       })
-      setImageId(imageId.push([{ link: data.url }]))
+      let imagesId = imageId ? imageId.split('~').map((i) => JSON.parse(i)) : []
+      imagesId[imagesId.length] = data ? (data.url ? { link: data.url, id: v4() } : '') : ''
+      setImageId(imagesId.map((item) => JSON.stringify(item)).join('~'))
     } catch (err) {
       console.warn(err)
     }
@@ -92,18 +124,6 @@ const Task = () => {
 
   const { id } = useParams()
   let userId = typeof userIds == 'string' ? userIds.split(',') : userIds
-
-  const unique = (arr) => {
-    let result = []
-
-    for (let str of arr) {
-      if (!result.includes(str)) {
-        result.push(str)
-      }
-    }
-
-    return result
-  }
 
   useEffect(() => {
     if (id) {
@@ -114,32 +134,61 @@ const Task = () => {
   }, [])
 
   useEffect(() => {
-    let ter = [{ link: 'test' }]
-    console.log('test', task.imageId[0] ? task.imageId[task.imageId.length - 1].link : [])
-    console.log('test2', ter)
     if (id) {
       setTitle(task.title)
       setDescription(task.description)
       setFileId('')
-      setDateEnd(new Date(task.date_end))
-      setImageId(task.imageId[0] ? task.imageId : '')
+      setDateEnd(
+        `${new Date(task.date_end).getFullYear()}-${new Date(task.date_end).getMonth()}-${
+          new Date(task.date_end).getDate > 9
+            ? new Date(task.date_end).getDate()
+            : `0${new Date(task.date_end).getDate()}`
+        }`,
+      )
+      console.log(1)
+      console.log(
+        `${new Date(task.date_end).getFullYear()}-${new Date(task.date_end).getMonth()}-${
+          new Date(task.date_end).getDate > 9
+            ? new Date(task.date_end).getDate()
+            : `0${new Date(task.date_end).getDate()}`
+        }`,
+      )
+      setImageId(task.imageId[0] ? task.imageId.map((item) => JSON.stringify(item)).join('~') : '')
       const userTask = typeof task.userIds != 'string' ? task.userIds.join(',') : task.userIds
       setUserIds(userTask)
       setUser(task.user)
       console.log(task.user)
       userId = userIds.split(',')
+      setIsLoading(task.id ? false : true)
     } else {
       setTitle('')
       setDescription('')
       setFileId('')
-      setImageId([{ link: 'test' }])
+      setImageId('')
       setUserIds('')
-      setDateEnd(new Date())
+      setDateEnd(
+        `${new Date().getFullYear()}-${new Date().getMonth()}-${
+          new Date().getDate > 9 ? new Date().getDate() : `0${new Date().getDate()}`
+        }`,
+      )
+      console.log(`${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`)
       userId = userIds.split(',')
+      setIsLoading(false)
     }
   }, [task])
 
-  return (
+  return isLoading ? (
+    <CSpinner
+      color="primary"
+      style={{
+        scale: '3',
+        display: 'block',
+        margin: '0px auto',
+        marginTop: '230px',
+        marginBottom: '50px',
+      }}
+    />
+  ) : (
     <div className="bg-light min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
         <CRow className="justify-content-center">
@@ -162,17 +211,34 @@ const Task = () => {
                     <CInputGroupText>
                       <CIcon icon={cilUser} />
                     </CInputGroupText>
-                    <CFormInput
-                      onChange={(event) => setDescription(event.target.value)}
-                      placeholder="Описание задания"
-                      autoComplete="description"
+                    <CFormTextarea
+                      id="exampleFormControlTextarea1"
+                      rows="3"
                       value={description}
-                    />
+                      onChange={(event) => setDescription(event.target.value)}
+                    ></CFormTextarea>
                   </CInputGroup>
-                  <CInputGroup className="mb-3" style={{}}>
-                    <div>
-                      <Calendar onChange={setDateEnd} value={dateEnd} />
-                    </div>
+                  <CInputGroup className="mb-3" style={{ width: '100%' }}>
+                    <TextField
+                      id="date"
+                      label="Дата рождения"
+                      onChange={(event) => {
+                        console.log(event.target.value)
+                        console.log(
+                          `${new Date(event.target.value).getFullYear()}-${new Date(
+                            event.target.value,
+                          ).getMonth()}-${new Date(event.target.value).getDate()}`,
+                        )
+                        setDateEnd(event.target.value)
+                      }}
+                      type="date"
+                      defaultValue={dateEnd}
+                      sx={{ width: 220 }}
+                      style={{ margin: '0px auto' }}
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                    />
                   </CInputGroup>
                   {/*<CInputGroup className="mb-3">*/}
                   {/*  <CInputGroupText>*/}
@@ -187,32 +253,57 @@ const Task = () => {
                   {/*    value={userIds}*/}
                   {/*  />*/}
                   {/*</CInputGroup>*/}
-                  {imageId
-                    ? imageId.map((item, index) => (
-                        <div
-                          key={index}
-                          className="clearfix image"
-                          style={{ position: 'relative', backgroundColor: '1px solid red' }}
-                        >
-                          <CImage
-                            align="start"
-                            rounded
-                            src={`${BACK_URL}${item.link}`}
-                            style={{ marginBottom: '15px' }}
-                            width={200}
-                          />
-                          <CButton
-                            className="childs"
-                            onClick={() => {}}
-                            type="button"
-                            color="secondary"
-                            variant="outline"
-                          >
-                            <CIcon icon={cilDelete} />
-                          </CButton>
-                        </div>
-                      ))
-                    : ''}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'space-around',
+                      width: '100%',
+                    }}
+                  >
+                    {imageId
+                      ? imageId
+                          .split('~')
+                          .map((i) => JSON.parse(i))
+                          .map((item, index) => (
+                            <div
+                              key={index}
+                              className="image"
+                              style={{
+                                flex: '0 1 24%',
+                                position: 'relative',
+                              }}
+                            >
+                              <img
+                                src={`${BACK_URL}${item.link}`}
+                                style={{
+                                  marginBottom: '15px',
+                                  objectFit: 'cover',
+                                  width: '200px',
+                                  height: '150px',
+                                }}
+                              />
+                              <CButton
+                                className="childs"
+                                onClick={() => {
+                                  let tests = imageId
+                                    .split('~')
+                                    .map((i) => JSON.parse(i))
+                                    .filter((image) => image.id !== item.id)
+                                  console.log(tests)
+                                  setImageId(tests.map((item) => JSON.stringify(item)).join('~'))
+                                  dispatch(fetchDeleteImage(`/${item.id}`))
+                                }}
+                                type="button"
+                                color="secondary"
+                                variant="outline"
+                              >
+                                <CIcon icon={cilDelete} />
+                              </CButton>
+                            </div>
+                          ))
+                      : ''}
+                  </div>
                   <CInputGroup style={{ marginBottom: '20px' }}>
                     <CFormInput
                       type="file"
